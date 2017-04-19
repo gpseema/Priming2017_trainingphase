@@ -37,7 +37,7 @@ Settings.Fixation.ColourWaitForKeyPress = [0 255 0];
 Settings.FrameWidth=40;
 Settings.FontSize= 12;
 
-Settings.rootdir = 'S:\AG\AG-Hesselmann-XT-Home\hesselmg\BACKUP31102011\BERLIN 2011\Studenten 2011-2013\Seema\Source Code'; % adjust rootdir
+Settings.rootdir = 'T:\Matlab\Trainingphase'; % adjust rootdir
 
 KbName('UnifyKeyNames');
 
@@ -128,7 +128,7 @@ try
     % read 2 shined images (dummy "effects")
     MyTextures = cell(40,1);
     for i = 1:2
-        MyTextures{i}=Screen('MakeTexture', w, imread(fullfile(Settings.rootdir,'images',['sf30grey_new' num2str(i) '.tif'])), 0, 0, 0, 0, 0);
+        MyTextures{i}=Screen('MakeTexture', w, imread(fullfile(Settings.rootdir,'images',['arrow' num2str(i) '.tif'])), 0, 0, 0, 0, 0);
     end    
         
     %% make empty grey texture for contrast modulation of CFS masks (and
@@ -240,7 +240,19 @@ Results.StimOnset(mytrialnum) = StimOnset;
 Results.ResponseCounter(mytrialnum) = myresponses;
 Results.ResponseRT(mytrialnum) = RT; Results.ResponseKey{mytrialnum} = KbName(min(find(keyCode)));
 Results.ResponseOnset(mytrialnum) = secs;            
-      
+ 
+%Feedback if no keypress is made
+if isnan(RT)
+Screen('FillRect', w, Settings.Background.Greyvalue, wRect);
+Screen('DrawTexture', w, FrameTexture,[], recter(Settings.FrameSize, [xpos ypos], [x y]), [], [], 1);
+Screen('DrawTexture', w, GreyTexture,[], recter(Settings.StimSize, [xpos ypos], [x y]), [], [], 1);
+[nx, ny, bbox] = DrawFormattedText(w, 'NO RESPONSE!', x/2 , Settings.Stimuli.CenterXY(2) , Settings.Red);
+Screen('Flip',w);
+WaitSecs(Settings.Feedback.Duration/1000);
+end
+
+
+
 if keyCode(EscapeKey)
    break; % abort program
 end
