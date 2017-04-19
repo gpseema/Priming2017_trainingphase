@@ -15,6 +15,23 @@ Settings.SquareSize = round(Settings.StimSize/50);
 Settings.FrameSize= Settings.StimSize+2*Settings.SquareSize;
 frame_im = ones(Settings.FrameSize);
 
+Settings.CFS.N = 25;
+Settings.CFS.ExtraMasks = 2; % these masks are used for the "probe on mask" period (2x100ms = 200ms, at 10Hz)
+Settings.CFS.loopNr = 1000   ;
+Settings.CFS.Selection = 3;
+Settings.CFS.Shape = 5;
+Settings.CFS.Size = 100;    
+Settings.CFS.SizeRect = 0.75;
+Settings.Main.CFS.Hertz = 10;
+Settings.Fixation.Size  = 10;
+
+Settings.DomEye = 2; % 1:left, 2:right                                                          XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+Settings.Instruction =  2; % 1-8 (see list)                                                     XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX 
+Settings.StimAlpha = [0.4821]; % contrast of the primes, 0 = full, 1 = zero contrast                 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+
+
+
 Settings.StimDuration = 200;
 Settings.Fixation.Size  = 10;
 Settings.Fixation.DurationRed = 1000;
@@ -38,6 +55,14 @@ Settings.FrameWidth=40;
 Settings.FontSize= 12;
 
 Settings.rootdir = 'T:\Matlab\Trainingphase'; % adjust rootdir
+
+
+if Settings.DomEye == 2
+    Settings.NonDomEye = 1;
+elseif Settings.DomEye == 1
+    Settings.NonDomEye = 2;
+end
+
 
 KbName('UnifyKeyNames');
 
@@ -100,7 +125,8 @@ try
     y = wRect(4);
 
     ypos = y/2; % center
-    xpos = x/2; % center
+    xpos(1) = x/4; % left center
+    xpos(2) = 3*(x/4) % right center
   
     [xmm ymm]= Screen('DisplaySize', w);
 
@@ -108,8 +134,10 @@ try
     Results.ExperimentScript = mfilename('fullpath');
     
     %% Settings
-    Settings.Stimuli.CenterXY = [xpos,ypos];
-
+    Settings.Stimuli.CenterXY{1} = [x/4,y/2];
+    Settings.Stimuli.CenterXY{2} = [3*(x/4),y/2];
+    
+    
     Frametime=1/60; % Screen('GetFlipInterval',w,50); % or just set to 0.0167
     Results.Frametime=Frametime;
     Refreshrate=1/Frametime;
@@ -118,7 +146,8 @@ try
     %% Display first message and get screen details
     Screen('TextFont',w, 'Arial');
     Screen('TextSize',w, Settings.FontSize);
-    [nx, ny, bbox] = DrawFormattedText(w, 'Please wait...', x/2 , Settings.Stimuli.CenterXY(2) , Settings.Writing.Colour);
+    [nx, ny, bbox] = DrawFormattedText(w, 'Please wait...', x/8 , Settings.Stimuli.CenterXY {1}(2) , Settings.Writing.Colour);
+    [nx, ny, bbox] = DrawFormattedText(w, 'Please wait...', 5*(x/8) , Settings.Stimuli.CenterXY {2}(2) , Settings.Writing.Colour);
     Screen('Flip',w);
 
     FrameTexture=Screen('MakeTexture', w, frame_im*255, 0, 0, 0, 0, 0);
@@ -137,8 +166,8 @@ try
     GreyTexture=Screen('MakeTexture', w, grey_wo_frame, 0, 4, 0, 0, 0);
 
     %% Hz Message
-    [nx, ny, bbox] = DrawFormattedText(w, ['Resolution: ' num2str(wRect(3)) ' x ' num2str(wRect(4)) '\n\n \n\nScreen Hertz: ' num2str(Refreshrate)], x/2 , Settings.Stimuli.CenterXY(2) , Settings.Writing.Colour);
-
+    [nx, ny, bbox] = DrawFormattedText(w, ['Resolution: ' num2str(wRect(3)) ' x ' num2str(wRect(4)) '\n\n \n\nScreen Hertz: ' num2str(Refreshrate)], x/8 , Settings.Stimuli.CenterXY {1}(2) , Settings.Writing.Colour);
+    [nx, ny, bbox] = DrawFormattedText(w, ['Resolution: ' num2str(wRect(3)) ' x ' num2str(wRect(4)) '\n\n \n\nScreen Hertz: ' num2str(Refreshrate)], 5*(x/8) , Settings.Stimuli.CenterXY {2}(2) , Settings.Writing.Colour);
     Screen('Flip',w);
     WaitSecs(0.5);    
     FlushEvents;  RestrictKeysForKbCheck([SpaceKey]);
@@ -205,9 +234,11 @@ mytrialnum = mytrialnum + 1;
 % display red fixation on grey background
 
 Screen('FillRect', w, Settings.Background.Greyvalue, wRect);
-Screen('DrawTexture', w, FrameTexture,[], recter(Settings.FrameSize, [xpos ypos], [x y]), [], [], 1);
-Screen('DrawTexture', w, GreyTexture,[], recter(Settings.StimSize, [xpos ypos], [x y]), [], [], 1);
-makefix_single(xpos,ypos,Settings.Fixation.Size,Settings.Fixation.Colour,w);  
+Screen('DrawTexture', w, FrameTexture,[], recter(Settings.FrameSize, [xpos(1) ypos], [x y]), [], [], 1);
+Screen('DrawTexture', w, FrameTexture,[], recter(Settings.FrameSize, [xpos(2) ypos], [x y]), [], [], 1);
+Screen('DrawTexture', w, GreyTexture,[], recter(Settings.StimSize, [xpos(1) ypos], [x y]), [], [], 1);
+Screen('DrawTexture', w, GreyTexture,[], recter(Settings.StimSize, [xpos(2) ypos], [x y]), [], [], 1);
+makefix(xpos,ypos,Settings.Fixation.Size,Settings.Fixation.Colour,w);  
 Screen('Flip',w);
 
 WaitSecs(Settings.Fixation.DurationRed/1000);
@@ -215,9 +246,11 @@ WaitSecs(Settings.Fixation.DurationRed/1000);
 % display green fixation on grey background
 
 Screen('FillRect', w, Settings.Background.Greyvalue, wRect);
-Screen('DrawTexture', w, FrameTexture,[], recter(Settings.FrameSize, [xpos ypos], [x y]), [], [], 1);
-Screen('DrawTexture', w, GreyTexture,[], recter(Settings.StimSize, [xpos ypos], [x y]), [], [], 1);
-makefix_single(xpos,ypos,Settings.Fixation.Size,Settings.Fixation.ColourWaitForKeyPress,w);
+Screen('DrawTexture', w, FrameTexture,[], recter(Settings.FrameSize, [xpos(1) ypos], [x y]), [], [], 1);
+Screen('DrawTexture', w, FrameTexture,[], recter(Settings.FrameSize, [xpos(2) ypos], [x y]), [], [], 1);
+Screen('DrawTexture', w, GreyTexture,[], recter(Settings.StimSize, [xpos(1) ypos], [x y]), [], [], 1);
+Screen('DrawTexture', w, GreyTexture,[], recter(Settings.StimSize, [xpos(2) ypos], [x y]), [], [], 1);
+makefix(xpos,ypos,Settings.Fixation.Size,Settings.Fixation.ColourWaitForKeyPress,w);
 [FlipStart, StimOnset] = Screen('Flip',w);
 
 Results.StimOnset(mytrialnum) = StimOnset;
@@ -244,9 +277,12 @@ Results.ResponseOnset(mytrialnum) = secs;
 %Feedback if no keypress is made
 if isnan(RT)
 Screen('FillRect', w, Settings.Background.Greyvalue, wRect);
-Screen('DrawTexture', w, FrameTexture,[], recter(Settings.FrameSize, [xpos ypos], [x y]), [], [], 1);
-Screen('DrawTexture', w, GreyTexture,[], recter(Settings.StimSize, [xpos ypos], [x y]), [], [], 1);
-[nx, ny, bbox] = DrawFormattedText(w, 'NO RESPONSE!', x/2 , Settings.Stimuli.CenterXY(2) , Settings.Red);
+Screen('DrawTexture', w, FrameTexture,[], recter(Settings.FrameSize, [xpos(1) ypos], [x y]), [], [], 1);
+Screen('DrawTexture', w, FrameTexture,[], recter(Settings.FrameSize, [xpos(2) ypos], [x y]), [], [], 1);
+Screen('DrawTexture', w, GreyTexture,[], recter(Settings.StimSize, [xpos(1) ypos], [x y]), [], [], 1);
+Screen('DrawTexture', w, GreyTexture,[], recter(Settings.StimSize, [xpos(2) ypos], [x y]), [], [], 1);
+[nx, ny, bbox] = DrawFormattedText(w, 'NO RESPONSE!', x/5 , Settings.Stimuli.CenterXY {1}(2) , Settings.Red);
+[nx, ny, bbox] = DrawFormattedText(w, 'NO RESPONSE!', 7*(x/10) , Settings.Stimuli.CenterXY {2}(2) , Settings.Red);
 Screen('Flip',w);
 WaitSecs(Settings.Feedback.Duration/1000);
 end
@@ -261,12 +297,15 @@ end
 
 if keyCode(Settings.Key1) && Settings.Mapping == 0
 Screen('FillRect', w, Settings.Background.Greyvalue, wRect);
-Screen('DrawTexture', w, FrameTexture,[], recter(Settings.FrameSize, [xpos ypos], [x y]), [], [], 1);
+Screen('DrawTexture', w, FrameTexture,[], recter(Settings.FrameSize, [xpos(1) ypos], [x y]), [], [], 1);
+Screen('DrawTexture', w, FrameTexture,[], recter(Settings.FrameSize, [xpos(2) ypos], [x y]), [], [], 1);
 
 if Settings.CatchTrial(myresponses)
-Screen('DrawTexture', w, MyTextures{2},[], recter(Settings.StimSize, [xpos ypos], [x y]), [], [], 1);
+Screen('DrawTexture', w, MyTextures{2},[], recter(Settings.StimSize, [xpos(1) ypos], [x y]), [], [], 1);
+Screen('DrawTexture', w, MyTextures{2},[], recter(Settings.StimSize, [xpos(2) ypos], [x y]), [], [], 1);
 else
-Screen('DrawTexture', w, MyTextures{1},[], recter(Settings.StimSize, [xpos ypos], [x y]), [], [], 1);
+Screen('DrawTexture', w, MyTextures{1},[], recter(Settings.StimSize, [xpos(1) ypos], [x y]), [], [], 1);
+Screen('DrawTexture', w, MyTextures{1},[], recter(Settings.StimSize, [xpos(2) ypos], [x y]), [], [], 1);
 end
 
 Screen('Flip',w);
@@ -275,12 +314,15 @@ end
 
 if keyCode(Settings.Key1) && Settings.Mapping == 1
 Screen('FillRect', w, Settings.Background.Greyvalue, wRect);
-Screen('DrawTexture', w, FrameTexture,[], recter(Settings.FrameSize, [xpos ypos], [x y]), [], [], 1);
+Screen('DrawTexture', w, FrameTexture,[], recter(Settings.FrameSize, [xpos(1) ypos], [x y]), [], [], 1);
+Screen('DrawTexture', w, FrameTexture,[], recter(Settings.FrameSize, [xpos(2) ypos], [x y]), [], [], 1);
 
 if Settings.CatchTrial(myresponses)
-Screen('DrawTexture', w, MyTextures{1},[], recter(Settings.StimSize, [xpos ypos], [x y]), [], [], 1);
+Screen('DrawTexture', w, MyTextures{1},[], recter(Settings.StimSize, [xpos(1) ypos], [x y]), [], [], 1);
+Screen('DrawTexture', w, MyTextures{1},[], recter(Settings.StimSize, [xpos(2) ypos], [x y]), [], [], 1);
 else
-Screen('DrawTexture', w, MyTextures{2},[], recter(Settings.StimSize, [xpos ypos], [x y]), [], [], 1);
+Screen('DrawTexture', w, MyTextures{2},[], recter(Settings.StimSize, [xpos(1) ypos], [x y]), [], [], 1);
+Screen('DrawTexture', w, MyTextures{2},[], recter(Settings.StimSize, [xpos(2) ypos], [x y]), [], [], 1);
 end
 
 Screen('Flip',w);
@@ -289,12 +331,15 @@ end
 
 if keyCode(Settings.Key2) && Settings.Mapping == 0
 Screen('FillRect', w, Settings.Background.Greyvalue, wRect);
-Screen('DrawTexture', w, FrameTexture,[], recter(Settings.FrameSize, [xpos ypos], [x y]), [], [], 1);
+Screen('DrawTexture', w, FrameTexture,[], recter(Settings.FrameSize, [xpos(1) ypos], [x y]), [], [], 1);
+Screen('DrawTexture', w, FrameTexture,[], recter(Settings.FrameSize, [xpos(2) ypos], [x y]), [], [], 1);
 
 if Settings.CatchTrial(myresponses)
-Screen('DrawTexture', w, MyTextures{1},[], recter(Settings.StimSize, [xpos ypos], [x y]), [], [], 1);
+Screen('DrawTexture', w, MyTextures{1},[], recter(Settings.StimSize, [xpos(1) ypos], [x y]), [], [], 1);
+Screen('DrawTexture', w, MyTextures{1},[], recter(Settings.StimSize, [xpos(2) ypos], [x y]), [], [], 1);
 else
-Screen('DrawTexture', w, MyTextures{2},[], recter(Settings.StimSize, [xpos ypos], [x y]), [], [], 1);
+Screen('DrawTexture', w, MyTextures{2},[], recter(Settings.StimSize, [xpos(1) ypos], [x y]), [], [], 1);
+Screen('DrawTexture', w, MyTextures{2},[], recter(Settings.StimSize, [xpos(2) ypos], [x y]), [], [], 1);
 end
 
 Screen('Flip',w);
@@ -303,12 +348,15 @@ end
 
 if keyCode(Settings.Key2) && Settings.Mapping == 1
 Screen('FillRect', w, Settings.Background.Greyvalue, wRect);
-Screen('DrawTexture', w, FrameTexture,[], recter(Settings.FrameSize, [xpos ypos], [x y]), [], [], 1);
+Screen('DrawTexture', w, FrameTexture,[], recter(Settings.FrameSize, [xpos(1) ypos], [x y]), [], [], 1);
+Screen('DrawTexture', w, FrameTexture,[], recter(Settings.FrameSize, [xpos(2) ypos], [x y]), [], [], 1);
 
 if Settings.CatchTrial(myresponses)
-Screen('DrawTexture', w, MyTextures{2},[], recter(Settings.StimSize, [xpos ypos], [x y]), [], [], 1);
+Screen('DrawTexture', w, MyTextures{2},[], recter(Settings.StimSize, [xpos(1) ypos], [x y]), [], [], 1);
+Screen('DrawTexture', w, MyTextures{2},[], recter(Settings.StimSize, [xpos(2) ypos], [x y]), [], [], 1);
 else
-Screen('DrawTexture', w, MyTextures{1},[], recter(Settings.StimSize, [xpos ypos], [x y]), [], [], 1);
+Screen('DrawTexture', w, MyTextures{1},[], recter(Settings.StimSize, [xpos(1) ypos], [x y]), [], [], 1);
+Screen('DrawTexture', w, MyTextures{1},[], recter(Settings.StimSize, [xpos(2) ypos], [x y]), [], [], 1);
 end
 
 Screen('Flip',w);
@@ -317,8 +365,10 @@ end
        
 % display empty screen
 Screen('FillRect', w, Settings.Background.Greyvalue, wRect);
-Screen('DrawTexture', w, FrameTexture,[], recter(Settings.FrameSize, [xpos ypos], [x y]), [], [], 1);
-Screen('DrawTexture', w, GreyTexture,[], recter(Settings.StimSize, [xpos ypos], [x y]), [], [], 1);
+Screen('DrawTexture', w, FrameTexture,[], recter(Settings.FrameSize, [xpos(1) ypos], [x y]), [], [], 1);
+Screen('DrawTexture', w, FrameTexture,[], recter(Settings.FrameSize, [xpos(2) ypos], [x y]), [], [], 1);
+Screen('DrawTexture', w, GreyTexture,[], recter(Settings.StimSize, [xpos(1) ypos], [x y]), [], [], 1);
+Screen('DrawTexture', w, GreyTexture,[], recter(Settings.StimSize, [xpos(2) ypos], [x y]), [], [], 1);
 Screen('Flip',w);
 
 % check whether participant catches the catch trial !
@@ -352,9 +402,12 @@ end
 if not(isnan(RT))
 if Settings.CatchTrial(myresponses) && isnan(RT2)
 Screen('FillRect', w, Settings.Background.Greyvalue, wRect);
-Screen('DrawTexture', w, FrameTexture,[], recter(Settings.FrameSize, [xpos ypos], [x y]), [], [], 1);
-Screen('DrawTexture', w, GreyTexture,[], recter(Settings.StimSize, [xpos ypos], [x y]), [], [], 1);
-[nx, ny, bbox] = DrawFormattedText(w, 'FAIL TO CATCH!', x/2 , Settings.Stimuli.CenterXY(2) , Settings.Red);
+Screen('DrawTexture', w, FrameTexture,[], recter(Settings.FrameSize, [xpos(1) ypos], [x y]), [], [], 1);
+Screen('DrawTexture', w, FrameTexture,[], recter(Settings.FrameSize, [xpos(2) ypos], [x y]), [], [], 1);
+Screen('DrawTexture', w, GreyTexture,[], recter(Settings.StimSize, [xpos(1) ypos], [x y]), [], [], 1);
+Screen('DrawTexture', w, GreyTexture,[], recter(Settings.StimSize, [xpos(2) ypos], [x y]), [], [], 1);
+[nx, ny, bbox] = DrawFormattedText(w, 'FAIL TO CATCH!', x/5 , Settings.Stimuli.CenterXY {1}(2) , Settings.Red);
+[nx, ny, bbox] = DrawFormattedText(w, 'FAIL TO CATCH!', 7*(x/10) , Settings.Stimuli.CenterXY{2}(2) , Settings.Red);
 Screen('Flip',w);
 WaitSecs(Settings.Feedback.Duration/1000);
 end
@@ -367,9 +420,12 @@ disp(mytrialnum);
 end % TRIAL LOOP
 
 Screen('FillRect', w, Settings.Background.Greyvalue, wRect);
-Screen('DrawTexture', w, FrameTexture,[], recter(Settings.FrameSize, [xpos ypos], [x y]), [], [], 1);
-Screen('DrawTexture', w, GreyTexture,[], recter(Settings.StimSize, [xpos ypos], [x y]), [], [], 1);
-[nx, ny, bbox] = DrawFormattedText(w, 'ENDE', x/2 , Settings.Stimuli.CenterXY(2) , Settings.Writing.Colour);
+Screen('DrawTexture', w, FrameTexture,[], recter(Settings.FrameSize, [xpos(1) ypos], [x y]), [], [], 1);
+Screen('DrawTexture', w, FrameTexture,[], recter(Settings.FrameSize, [xpos(2) ypos], [x y]), [], [], 1);
+Screen('DrawTexture', w, GreyTexture,[], recter(Settings.StimSize, [xpos(1) ypos], [x y]), [], [], 1);
+Screen('DrawTexture', w, GreyTexture,[], recter(Settings.StimSize, [xpos(2) ypos], [x y]), [], [], 1);
+[nx, ny, bbox] = DrawFormattedText(w, 'ENDE', x/8 , Settings.Stimuli.CenterXY {1}(2) , Settings.Writing.Colour);
+[nx, ny, bbox] = DrawFormattedText(w, 'ENDE', 5*(x/8), Settings.Stimuli.CenterXY {2}(2) , Settings.Writing.Colour);
 Screen('Flip',w);
 
 WaitSecs(1);
