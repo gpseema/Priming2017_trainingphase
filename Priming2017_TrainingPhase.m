@@ -325,7 +325,7 @@ Results.StimOnset(mytrialnum) = StimOnset;
 Results.ResponseCounter(mytrialnum) = myresponses;
 Results.ResponseRT(mytrialnum) = RT; Results.ResponseKey{mytrialnum} = KbName(min(find(keyCode)));
 Results.ResponseOnset(mytrialnum) = secs;            
- 
+  x_offset = 65
 %Feedback if no keypress is made
 if isnan(RT)
 Screen('FillRect', w, Settings.Background.Greyvalue, wRect);
@@ -333,8 +333,8 @@ Screen('DrawTexture', w, FrameTexture,[], recter(Settings.FrameSize, [xpos(1) yp
 Screen('DrawTexture', w, FrameTexture,[], recter(Settings.FrameSize, [xpos(2) ypos], [x y]), [], [], 1);
 Screen('DrawTexture', w, GreyTexture,[], recter(Settings.StimSize, [xpos(1) ypos], [x y]), [], [], 1);
 Screen('DrawTexture', w, GreyTexture,[], recter(Settings.StimSize, [xpos(2) ypos], [x y]), [], [], 1);
-[nx, ny, bbox] = DrawFormattedText(w, 'NO RESPONSE!', x/5 , Settings.Stimuli.CenterXY {1}(2) , Settings.Red);
-[nx, ny, bbox] = DrawFormattedText(w, 'NO RESPONSE!', 7*(x/10) , Settings.Stimuli.CenterXY {2}(2) , Settings.Red);
+[nx, ny, bbox] = DrawFormattedText(w, 'NO RESPONSE!',  xpos(1)-Settings.FrameSize/2+Settings.FrameWidth, ypos-Settings.FrameSize/4 + x_offset, Settings.Red);
+[nx, ny, bbox] = DrawFormattedText(w, 'NO RESPONSE!',  xpos(2)-Settings.FrameSize/2+Settings.FrameWidth, ypos-Settings.FrameSize/4 + x_offset , Settings.Red);
 Screen('Flip',w);
 WaitSecs(Settings.Feedback.Duration/1000);
 end
@@ -458,8 +458,8 @@ Screen('DrawTexture', w, FrameTexture,[], recter(Settings.FrameSize, [xpos(1) yp
 Screen('DrawTexture', w, FrameTexture,[], recter(Settings.FrameSize, [xpos(2) ypos], [x y]), [], [], 1);
 Screen('DrawTexture', w, GreyTexture,[], recter(Settings.StimSize, [xpos(1) ypos], [x y]), [], [], 1);
 Screen('DrawTexture', w, GreyTexture,[], recter(Settings.StimSize, [xpos(2) ypos], [x y]), [], [], 1);
-[nx, ny, bbox] = DrawFormattedText(w, 'FAIL TO CATCH!', x/5 , Settings.Stimuli.CenterXY {1}(2) , Settings.Red);
-[nx, ny, bbox] = DrawFormattedText(w, 'FAIL TO CATCH!', 7*(x/10) , Settings.Stimuli.CenterXY{2}(2) , Settings.Red);
+[nx, ny, bbox] = DrawFormattedText(w, 'FAIL TO CATCH!', xpos(1)-Settings.FrameSize/2+Settings.FrameWidth + x_offset, ypos-Settings.FrameSize/4 , Settings.Red);
+[nx, ny, bbox] = DrawFormattedText(w, 'FAIL TO CATCH!',  xpos(2)-Settings.FrameSize/2+Settings.FrameWidth + x_offset, ypos-Settings.FrameSize/4 , Settings.Red);
 Screen('Flip',w);
 WaitSecs(Settings.Feedback.Duration/1000);
 end
@@ -476,8 +476,8 @@ Screen('DrawTexture', w, FrameTexture,[], recter(Settings.FrameSize, [xpos(1) yp
 Screen('DrawTexture', w, FrameTexture,[], recter(Settings.FrameSize, [xpos(2) ypos], [x y]), [], [], 1);
 Screen('DrawTexture', w, GreyTexture,[], recter(Settings.StimSize, [xpos(1) ypos], [x y]), [], [], 1);
 Screen('DrawTexture', w, GreyTexture,[], recter(Settings.StimSize, [xpos(2) ypos], [x y]), [], [], 1);
-[nx, ny, bbox] = DrawFormattedText(w, 'ENDE', x/8 , Settings.Stimuli.CenterXY {1}(2) , Settings.Writing.Colour);
-[nx, ny, bbox] = DrawFormattedText(w, 'ENDE', 5*(x/8), Settings.Stimuli.CenterXY {2}(2) , Settings.Writing.Colour);
+[nx, ny, bbox] = DrawFormattedText(w, 'ENDE',xpos(1)-Settings.FrameSize/2+Settings.FrameWidth, ypos-Settings.FrameSize/4 , Settings.Writing.Colour);
+[nx, ny, bbox] = DrawFormattedText(w, 'ENDE',  xpos(2)-Settings.FrameSize/2+Settings.FrameWidth, ypos-Settings.FrameSize/4  , Settings.Writing.Colour);
 Screen('Flip',w);
 
 WaitSecs(1);
